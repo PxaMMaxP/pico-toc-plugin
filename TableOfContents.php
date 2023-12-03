@@ -253,7 +253,7 @@ class TableOfContents extends AbstractPicoPlugin
             $curr_header = $headers[$index];
             if (isset($curr_header->tagName) && $curr_header->tagName !== '') {
                 $header_classes = explode(' ', $curr_header->getAttribute('class'));
-                $is_unlisted = in_array('unlisted', $header_classes);
+				$is_unlisted = in_array('unlisted', $header_classes);
 
                 // Add missing id's to the h tags
                 $id = $curr_header->getAttribute('id');
@@ -266,7 +266,7 @@ class TableOfContents extends AbstractPicoPlugin
                 $li_element = $document->createElement('li');
                 $a_element = $document->createElement('a');
                 $a_element->setAttribute('href', "#$id");
-                $a_element->nodeValue = $this->extractTextWithoutCertainTags($curr_header, ['sup']);
+                $a_element->nodeValue = $curr_header->nodeValue;
                 $li_element->appendChild($a_element);
 
                 $next_header = ($index + 1 < $headers->length) ? $headers[$index + 1] : null;
@@ -274,14 +274,14 @@ class TableOfContents extends AbstractPicoPlugin
                     // The next header is at a lower level -> add nested headers
                     $index++;
                     $nested_list_element = $this->getList($document, $headers, $index, false);
-                    if ($nested_list_element->hasChildNodes()) {
-                        $li_element->appendChild($nested_list_element);
-                    };
+                    if ($nested_list_element->hasChildNodes()) { 
+						$li_element->appendChild($nested_list_element);
+					};
                 }
 
                 if (!$is_unlisted) {
-                    $list_element->appendChild($li_element);
-                }
+					$list_element->appendChild($li_element);
+				}
 
                 // Refresh next_header with the updated index
                 $next_header = ($index + 1 < $headers->length) ? $headers[$index + 1] : null;
@@ -292,33 +292,6 @@ class TableOfContents extends AbstractPicoPlugin
             }
         }
         return $list_element;
-    }
-
-    /**
-     * Extract text from a node without the text from certain tags.
-     *
-     * @param DOMNode $node
-     * @param string[] $ignoredTags
-     * @return string
-     */
-    private function extractTextWithoutCertainTags($node, $ignoredTags)
-    {
-        $text = '';
-
-        foreach ($node->childNodes as $child) {
-            if ($child->nodeType === XML_TEXT_NODE) {
-                // Add text from text nodes
-                $text .= $child->nodeValue;
-            } elseif ($child->nodeType === XML_ELEMENT_NODE) {
-                // Check if the current tag is not in the list of ignored tags
-                if (!in_array(strtolower($child->tagName), $ignoredTags, true)) {
-                    // Recursively get text from elements that are not in the ignored list
-                    $text .= $this->extractTextWithoutCertainTags($child, $ignoredTags);
-                }
-            }
-        }
-
-        return $text;
     }
 
     /**
